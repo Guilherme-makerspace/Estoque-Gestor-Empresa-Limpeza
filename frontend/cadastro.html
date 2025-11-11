@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav class="horizontal-bar">
+            <a href="index.html">Menu Principal</a>
+            <a href="alertas.html">Alertas</a>
+            <a href="estoque.html">Estoque</a>
+        </nav>
+    </header>
+    <main>
+        <h1>Cadastro de Produto</h1>
+        <form id="cadastro-form">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" required>
+
+            <label for="marca">Marca:</label>
+            <input type="text" id="marca" name="marca" required>
+
+            <label for="volume">Volume:</label>
+            <input type="text" id="volume" name="volume" required>
+
+            <label for="tipo_embalagem">Tipo de Embalagem:</label>
+            <input type="text" id="tipo_embalagem" name="tipo_embalagem" required>
+
+            <label for="aplicacao">Aplicação:</label>
+            <input type="text" id="aplicacao" name="aplicacao" required>
+
+            <label for="estoque">Estoque:</label>
+            <input type="number" id="estoque" name="estoque" required>
+
+            <label for="estoque_minimo">Estoque Mínimo:</label>
+            <input type="number" id="estoque_minimo" name="estoque_minimo" required>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+        <script>
+            document.getElementById('cadastro-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const data = Object.fromEntries(formData);
+
+                try {
+                    const response = await fetch('http://10.111.9.86:3001/produtos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    alert(result.msg);
+                } catch (error) {
+                    alert('Erro ao cadastrar produto.');
+                }
+            });
+        </script>
+    </main>
+</body>
+</html>
