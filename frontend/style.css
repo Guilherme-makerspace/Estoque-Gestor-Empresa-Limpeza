@@ -76,6 +76,31 @@ nav a.active {
     margin-bottom: 25px;
 }
 
+.card table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.card table th, .card table td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: left;
+}
+
+.card table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.card table tr:nth-child(even) {
+    background-color: #f1f9ff;
+}
+
+.card table tr:hover {
+    background-color: #e9f5ff;
+}
+
 h1, h2, h3 {
     margin-bottom: 15px;
 }
