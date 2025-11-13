@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alertasContainer.innerHTML = '<p>Nenhum alerta disponível.</p>';
             }
         } catch (error) {
+            console.error('Erro ao carregar alertas:', error);
             alertasContainer.innerHTML = '<p>Erro ao carregar alertas.</p>';
         }
     };
@@ -84,9 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // identificar a pagina atual e executar a função correspondente
     const path = window.location.pathname;
-    if (path.includes('estoque.html')) {
+    if (path === '/Estoque') {
         carregarProdutos();
-    } else if (path.includes('alertas.html')) {
+    } else if (path === '/Alertas') {
         carregarAlertas();
     }
 });

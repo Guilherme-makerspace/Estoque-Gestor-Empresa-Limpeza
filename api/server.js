@@ -2,14 +2,24 @@
 
 const express = require('express')
 const app = express()
+const session = require('express-session')
 const mysql = require('mysql2/promise')
 const path = require('path')
+
+// CREATE USER 'admin'@'%' IDENTIFIED BY 'estoqueadmin123';
+// GRANT ALL PRIVILEGES ON controle_de_estoque.* TO 'admin'@'%';
+// FLUSH PRIVILEGES;
 
 var PORT = 3001
 app.listen(PORT, '0.0.0.0')
 
 app.use(express.json())
 app.use(express.static(path.join(__dirname, '../frontend')))
+app.use(session({
+    secret: '56fa8e92acf04b00bb5b98e4a94c65f4578b92ef439e7d4849322648c95246ae',
+    resave: false,
+    saveUninitialized: false,
+}))
 
 //criando features
 
@@ -20,25 +30,47 @@ const conn = mysql.createPool({
     database: "controle_de_estoque"
 })
 
-// Serve frontend 
+// Serve frontend
+
+app.get("/login", (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/login.html'));
+});
+
+
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+    if (req.session && req.session.usuario) {
+        res.sendFile(path.join(__dirname, '../frontend/index.html'));
+    } else {
+        res.redirect("/login");
+    }
 });
 
 app.get('/Cadastro', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cadastro.html'));
+    if (req.session && req.session.usuario) {
+        res.sendFile(path.join(__dirname, '../frontend/cadastro.html'));
+    } else {
+        res.redirect("/login");
+    }
 });
 
 app.get('/Alertas', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/alertas.html'));
+    if (req.session && req.session.usuario) {
+        res.sendFile(path.join(__dirname, '../frontend/alertas.html'));
+    } else {
+        res.redirect("/login");
+    }
 });
 
 app.get('/Estoque', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/estoque.html'));
+    if (req.session && req.session.usuario) {
+        res.sendFile(path.join(__dirname, '../frontend/estoque.html'));
+    } else {
+        res.redirect("/login");
+    }
 });
 
 //gets
-app.get("/", (req, res) =>{
+app.get("/api", (req, res) =>{
     res.json({
         "/":"GET - Obtem todas as rotas disponiveis"
     })
@@ -49,14 +81,10 @@ app.get("/produtos", async (req, res) => {
 })
 app.get("/alertas", async (req, res) => {
     try {
-        const [rows] = await conn.query("SELECT * FROM produto WHERE estoque < estoque_minimo;");
-        if (rows.length > 0) {
-            res.json({ alertas: rows });
-        } else {
-            res.json({ msg: "Nenhum alerta disponível." });
-        }
+        const [rows] = await conn.query("SELECT nome, estoque, estoque_minimo FROM produto WHERE estoque < estoque_minimo;");
+        res.json({ alertas: rows });
     } catch (error) {
-        res.json({ msg: "Erro ao obter alertas." });
+        res.status(500).json({ msg: "Erro ao obter alertas." });
     }
 });
 
@@ -106,3 +134,20 @@ app.put("/estoque/saida", async (req, res) => {
         res.json({ msg: "Erro ao registrar saída." });
     }
 });
+
+//Login
+app.post("/login", (req, res) => {
+    const { usuario, senha } = req.body;
+
+    if (usuario == 'admin@gmail.com' && senha == 'estoqueadmin123') {
+        req.session.usuario = usuario;
+        res.redirect("/");
+    } else {
+        res.redirect("/login");
+    }
+})
+
+app.post("/logout", (req, res) =>{
+    req.session.destroy()
+    res.redirect("/login")
+})

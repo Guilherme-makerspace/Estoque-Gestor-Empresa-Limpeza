@@ -10,9 +10,9 @@
     <header class="topbar">
         <div class="brand">Sistema de Estoque</div>
         <nav>
-            <a href="index.html">Menu Principal</a>
-            <a href="alertas.html">Alertas</a>
-            <a href="estoque.html">Estoque</a>
+            <a href="/">Menu Principal</a>
+            <a href="/Alertas">Alertas</a>
+            <a href="/Estoque">Estoque</a>
         </nav>
     </header>
     <main class="container">
@@ -50,7 +50,7 @@
                 const data = Object.fromEntries(formData);
 
                 try {
-                    const response = await fetch('http://10.111.9.86:3001/produtos', {
+                    const response = await fetch(`${window.location.origin}/produtos`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
