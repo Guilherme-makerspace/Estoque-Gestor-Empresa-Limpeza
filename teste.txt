@@ -1,0 +1,133 @@
+# 📋 Exemplos Práticos de Testes da API
+
+Olá! Este arquivo é como um guia de testes para você brincar com a API do sistema de controle de estoque. Vamos usar comandos simples (curl) para testar tudo, como se estivesse testando um brinquedo novo. Você pode usar ferramentas como Postman ou Insomnia também, se preferir uma interface gráfica. A API fica rodando em http://localhost:3001 (quando você liga o servidor local).
+
+## 🔐 Antes de Começar os Testes
+
+Para tudo funcionar direitinho, prepare o terreno:
+1. **Ligue o Servidor**: Rode `npm start` ou `node server.js` dentro da pasta `api/`.
+2. **Banco de Dados Pronto**: Verifique se o MySQL está ligado e as tabelas existem (dá uma olhada no `limpeza_banco.sql` para limpar tudo se precisar).
+3. **Login Primeiro**: Para usar a maioria dos endpoints, você precisa estar logado. Vamos salvar cookies para manter a sessão ativa.
+
+## 🧪 Vamos Testar Passo a Passo
+
+### 1. Ver Todas as Rotas Disponíveis (Mapa da API)
+```bash
+curl -X GET http://localhost:3001/api
+```
+**O que Espera Ver**: Um JSON simples mostrando as rotas, tipo um mapa do que dá para fazer.
+
+### 2. Fazer Login (Chave para Tudo)
+```bash
+curl -X POST http://localhost:3001/login \
+  -H "Content-Type: application/json" \
+  -d '{"usuario": "admin", "senha": "senha123"}' \
+  --cookie-jar cookies.txt
+```
+**Dica**: Troque "admin" e "senha123" pelas suas credenciais reais. O `--cookie-jar` salva os cookies para usar depois.  
+**O que Espera Ver**: Vai te mandar para a página inicial se der certo.
+
+### 3. Ver Todos os Produtos Cadastrados
+```bash
+curl -X GET http://localhost:3001/produtos \
+  --cookie cookies.txt
+```
+**O que Espera Ver**: Uma lista em JSON com todos os produtos, como `[{ "produto_id": 1, "nome": "Sabão em Pó", ... }]`.
+
+### 4. Cadastrar um Novo Produto
+```bash
+curl -X POST http://localhost:3001/produtos \
+  -H "Content-Type: application/json" \
+  --cookie cookies.txt \
+  -d '{
+    "nome": "Detergente Líquido",
+    "marca": "Limpeza Total",
+    "volume": "1L",
+    "tipo_embalagem": "Plástico",
+    "aplicacao": "Limpeza Geral",
+    "estoque": 50,
+    "estoque_minimo": 10
+  }'
+```
+**O que Espera Ver**: `{"msg": "Cadastro Efetuado"}` – sucesso!
+
+### 5. Registrar Entrada no Estoque (Chegou Mais Produto)
+```bash
+curl -X PUT http://localhost:3001/estoque/entrada \
+  -H "Content-Type: application/json" \
+  --cookie cookies.txt \
+  -d '{
+    "produto_id": 1,
+    "tipo": "Compra",
+    "quantidade": 20
+  }'
+```
+**O que Espera Ver**: `{"msg": "Entrada registrada com sucesso."}` – o estoque aumentou!
+
+### 6. Registrar Saída no Estoque (Vendeu Produto)
+```bash
+curl -X PUT http://localhost:3001/estoque/saida \
+  -H "Content-Type: application/json" \
+  --cookie cookies.txt \
+  -d '{
+    "produto_id": 1,
+    "tipo": "Venda",
+    "quantidade": 5
+  }'
+```
+**O que Espera Ver**: `{"msg": "Saída registrada com sucesso."}` – o estoque diminuiu!
+
+### 7. Ver Alertas de Estoque Baixo
+```bash
+curl -X GET http://localhost:3001/alertas \
+  --cookie cookies.txt
+```
+**O que Espera Ver**: `{"alertas": [{"nome": "Sabão em Pó", "estoque": 5, "estoque_minimo": 10}]}` – produtos que precisam ser repostos.
+
+### 8. Fazer Logout (Sair do Sistema)
+```bash
+curl -X POST http://localhost:3001/logout \
+  --cookie cookies.txt
+```
+**O que Espera Ver**: Vai te mandar de volta para a página de login.
+
+## 🧪 Testes para Ver se Está Tudo Protegido
+
+Vamos testar o que acontece quando fazemos algo errado ou sem permissão:
+
+### Cadastrar Produto com Campos Vazios
+```bash
+curl -X POST http://localhost:3001/produtos \
+  -H "Content-Type: application/json" \
+  --cookie cookies.txt \
+  -d '{"nome": "Produto Incompleto"}'
+```
+**O que Espera Ver**: `{"msg": "Todos os campos são obrigatórios."}` (erro 400) – não deixa passar!
+
+### Tentar Entrada com Quantidade Negativa
+```bash
+curl -X PUT http://localhost:3001/estoque/entrada \
+  -H "Content-Type: application/json" \
+  --cookie cookies.txt \
+  -d '{
+    "produto_id": 1,
+    "tipo": "Compra",
+    "quantidade": -10
+  }'
+```
+**O que Espera Ver**: `{"msg": "Quantidade deve ser positiva."}` (erro 400) – protege contra erros bobos!
+
+### Tentar Acessar sem Estar Logado
+```bash
+curl -X GET http://localhost:3001/produtos
+```
+**O que Espera Ver**: Redirecionamento para `/login` – segurança em ação!
+
+## 📝 Dicas para Testar com Segurança
+
+- **Mantenha a Sessão**: Use sempre `--cookie cookies.txt` nas requisições depois do login, para ficar "logado".
+- **IDs dos Produtos**: Pegue IDs válidos da resposta de `/produtos` ou de cadastros que você fez.
+- **Configurações**: Verifique se o arquivo `.env` tem as senhas certas para o banco e login.
+- **Banco Limpo**: Rode o `limpeza_banco.sql` antes de testar, para começar do zero.
+
+Agora é só testar e ver tudo funcionando! Se der algum erro estranho, confira se o servidor está ligado e o banco conectado. Para mais detalhes sobre cada endpoint, olhe o `README_endpoints.md`. Divirta-se testando! 🚀
